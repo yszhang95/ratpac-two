@@ -23,6 +23,7 @@ add_library(daq OBJECT
   src/WaveformAnalysisSinc.cc
   src/WaveformAnalysisLucyDDM.cc
   src/WaveformAnalysisRSNNLS.cc
+  src/WaveformSampler.cc
   )
 target_link_libraries(daq PUBLIC FFTW3::fftw3)
 # Set our include directories
