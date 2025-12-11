@@ -12,6 +12,7 @@
 #define __RAT_DS_EV__
 
 // Clang 5.0 headers confuse rootcint...
+#include "RAT/DS/DiscreteSignal.hh"
 #ifdef __MAKECINT__
 #define __signed signed
 #endif
@@ -20,6 +21,7 @@
 #include <TTimeStamp.h>
 
 #include <RAT/DS/Digit.hh>
+#include <RAT/DS/DiscreteSignal.hh>
 #include <RAT/DS/DigitPMT.hh>
 #include <RAT/DS/FitResult.hh>
 #include <RAT/DS/LAPPD.hh>
@@ -168,6 +170,19 @@ class EV : public TObject {
   // Prune digitizer information
   virtual void PruneDigitizer() { digitizer.resize(0); }
 
+  /** Append waveform sampler to the end of fWaveformSampler vector **/
+  void SetWaveformSampler(const DiscreteSignal &ds) { fWaveformSampler.push_back(ds); }
+
+  /** Get the first waveform sampler **/
+  DiscreteSignal &GetWaveformSampler() { return fWaveformSampler.at(0); }
+
+  /** Check if the sampler vector is not empty **/
+  virtual bool SamplerExists() const { return !fWaveformSampler.empty(); }
+
+  /** Prune sampler information **/
+  virtual void PruneSampler() { fWaveformSampler.clear(); fWaveformSampler.shrink_to_fit(); }
+
+
   /** Event Cleaning **/
   virtual uint64_t GetEventCleaningWord() const { return eventCleaningWord; }
   virtual void SetEventCleaningWord(uint64_t _eventCleaningWord) { eventCleaningWord = _eventCleaningWord; }
@@ -202,6 +217,7 @@ class EV : public TObject {
   std::vector<FitResult *> fitResults;
   std::vector<Classifier *> classifierResults;
   std::vector<Digit> digitizer;  ///< The digitizer information
+  std::vector<DiscreteSignal> fWaveformSampler;  ///< The waveform sampler information
   uint64_t eventCleaningWord = 0;
 };
 

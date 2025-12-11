@@ -25,6 +25,7 @@ root_generate_dictionary(G__RATDict
         RAT/DS/Root.hh
         RAT/DS/Classifier.hh
         RAT/DS/Digit.hh
+        RAT/DS/DiscreteSignal.hh
         RAT/DS/EV.hh
         RAT/DS/Frame.hh
         RAT/DS/FrameLight.hh
