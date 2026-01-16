@@ -1,0 +1,26 @@
+# Streaming frame ambient light test
+/rat/db/set DETECTOR experiment "Validation"
+/rat/db/set DETECTOR geo_file "Validation/Valid.geo"
+
+
+# Dummy generator (0 photons) to satisfy Geant4
+/generator/add combo pbomb:point:poisson
+/generator/pos/set 0.0 0.0 0.0
+/generator/vtx/set 0 400
+/generator/rate/set 1.0
+
+/rat/proc streamingdaq
+/rat/proc streamingframe
+/rat/procset frame_window_length_ms 100.0
+
+/rat/proc ambientlight
+/rat/procset rate 7000.0
+
+/rat/proc outframeambientlight
+/rat/procset file "frame_ambientlight.root"
+
+/rat/proc outframemeta
+/rat/procset file "frame_meta.root"
+
+/run/initialize
+/run/beamOn 1000

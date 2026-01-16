@@ -20,6 +20,7 @@
 
 #pragma link C++ class RAT::DS::EV + ;
 #pragma link C++ class RAT::DS::Frame + ;
+#pragma link C++ class RAT::DS::FrameLight + ;
 #pragma link C++ class RAT::DS::PMT + ;
 #pragma link C++ class RAT::DS::DigitPMT + ;
 #pragma link C++ class RAT::DS::WaveformAnalysisResult + ;
@@ -77,6 +78,7 @@
 #pragma link C++ class vector < RAT::DS::Calib>;
 #pragma link C++ class vector < RAT::DS::EV>;
 #pragma link C++ class vector < RAT::DS::Frame>;
+#pragma link C++ class vector < RAT::DS::FrameLight>;
 #pragma link C++ class vector < RAT::DS::PMT>;
 #pragma link C++ class vector < RAT::DS::DigitPMT>;
 #pragma link C++ class vector < RAT::DS::LAPPD>;

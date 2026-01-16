@@ -29,6 +29,7 @@
 #include <RAT/DS/Calib.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/Frame.hh>
+#include <RAT/DS/FrameLight.hh>
 #include <RAT/DS/MC.hh>
 #include <string>
 #include <utility>
@@ -135,6 +136,16 @@ class Root : public TObject {
   virtual bool ExistFrame() const { return !frame.empty(); }
   virtual void PruneFrame() { frame.resize(0); }
 
+  /** Current frame light information. */
+  virtual FrameLight *GetFrameLight() {
+    if (frameLight.empty()) {
+      frameLight.resize(1);
+    }
+    return &frameLight[0];
+  }
+  virtual bool ExistFrameLight() const { return !frameLight.empty(); }
+  virtual void PruneFrameLight() { frameLight.resize(0); }
+
   /**
    * A list of user-defined doubles can store data for a particular
    * user's analysis. No official processor should ever use this.
@@ -144,7 +155,7 @@ class Root : public TObject {
   virtual double GetUserData(int i) const { return user.at(i); }
   virtual void SetUserData(int i, double val) { user.at(i) = val; }
 
-  ClassDef(Root, 2);
+  ClassDef(Root, 3);
 
  protected:
   int runID;
@@ -154,6 +165,7 @@ class Root : public TObject {
   std::vector<Calib> calib;
   std::vector<EV> ev;
   std::vector<Frame> frame;
+  std::vector<FrameLight> frameLight;
   std::vector<double> user;
 };
 
