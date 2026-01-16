@@ -24,10 +24,10 @@ class Frame : public TObject {
   }
 
   virtual double GetFrameStartTimeNs() const { return frameStartTimeNs; }
-  virtual void SetFrameStartTimeNs(int64_t _frameStartTimeNs) { frameStartTimeNs = _frameStartTimeNs; }
+  virtual void SetFrameStartTimeNs(double _frameStartTimeNs) { frameStartTimeNs = _frameStartTimeNs; }
 
   virtual double GetFrameWindowLengthNs() const { return frameWindowLengthNs; }
-  virtual void SetFrameWindowLengthNs(int64_t _frameWindowLengthNs) { frameWindowLengthNs = _frameWindowLengthNs; }
+  virtual void SetFrameWindowLengthNs(double _frameWindowLengthNs) { frameWindowLengthNs = _frameWindowLengthNs; }
 
   ClassDef(Frame, 1);
 
