@@ -9,6 +9,7 @@ add_library(io OBJECT
         src/OutNetProc.cc
         src/OutNtupleProc.cc
         src/OutROOTProc.cc
+        src/OutFrameMetaProc.cc
         src/TrackCursor.cc
         src/TrackNav.cc)
 

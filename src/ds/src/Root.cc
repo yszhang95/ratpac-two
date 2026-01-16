@@ -2,6 +2,7 @@
 #include <RAT/DS/Classifier.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/FitResult.hh>
+#include <RAT/DS/Frame.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCNestedTube.hh>
 #include <RAT/DS/MCNestedTubeHit.hh>
@@ -20,6 +21,7 @@ ClassImp(RAT::DS::MCPMT);
 ClassImp(RAT::DS::MCNestedTube);
 ClassImp(RAT::DS::Calib);
 ClassImp(RAT::DS::EV);
+ClassImp(RAT::DS::Frame);
 ClassImp(RAT::DS::PMT);
 ClassImp(RAT::DS::FitResult);
 ClassImp(RAT::DS::Classifier);

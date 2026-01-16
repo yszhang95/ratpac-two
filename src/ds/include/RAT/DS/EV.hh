@@ -39,6 +39,10 @@ class EV : public TObject {
   virtual Int_t GetID() const { return id; }
   virtual void SetID(Int_t _id) { id = _id; }
 
+  /** Frame index associated with this event. */
+  virtual Int_t GetFrameIndex() const { return frameIndex; }
+  virtual void SetFrameIndex(Int_t _frameIndex) { frameIndex = _frameIndex; }
+
   /** Date/time of event trigger (UTC)*/
   virtual TTimeStamp GetUTC() const { return utc; }
   virtual void SetUTC(const TTimeStamp &_utc) { utc = _utc; }
@@ -182,10 +186,11 @@ class EV : public TObject {
     return (eventCleaningWord >> bit_position) & 0x1;
   }
 
-  ClassDef(EV, 6);
+  ClassDef(EV, 7);
 
  protected:
   Int_t id;
+  Int_t frameIndex = 0;
   Double_t qTotal;
   Double_t calibratedTriggerTime;
   Double_t deltat;

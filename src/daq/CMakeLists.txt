@@ -13,6 +13,8 @@ add_library(daq OBJECT
   src/SimpleDAQProc.cc
   src/SplitEVDAQProc.cc
   src/ForcedTriggerProc.cc
+  src/StreamingDAQProc.cc
+  src/StreamingFrameProc.cc
   src/WaveformPrep.cc
   src/WaveformAnalyzerBase.cc
   src/WaveformAnalysisLognormal.cc

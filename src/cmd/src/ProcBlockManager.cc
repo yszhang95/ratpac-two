@@ -20,6 +20,7 @@
 #include <RAT/FitTensorProc.hh>
 #include <RAT/ForcedTriggerProc.hh>
 #include <RAT/NoiseProc.hh>
+#include <RAT/OutFrameMetaProc.hh>
 #include <RAT/OutNetProc.hh>
 #include <RAT/OutNtupleProc.hh>
 #include <RAT/OutROOTProc.hh>
@@ -27,6 +28,8 @@
 #include <RAT/PythonProc.hh>
 #include <RAT/SimpleDAQProc.hh>
 #include <RAT/SplitEVDAQProc.hh>
+#include <RAT/StreamingDAQProc.hh>
+#include <RAT/StreamingFrameProc.hh>
 #include <RAT/WaveformAnalysisGaussian.hh>
 #include <RAT/WaveformAnalysisLognormal.hh>
 #include <RAT/WaveformAnalysisLucyDDM.hh>
@@ -79,6 +82,7 @@ ProcBlockManager::ProcBlockManager(ProcBlock *theMainBlock) {
 
   AppendProcessor<OutNtupleProc>();
   AppendProcessor<OutNetProc>();
+  AppendProcessor<OutFrameMetaProc>();
   // Fitters
   AppendProcessor<FitCentroidProc>();
 #if TENSORFLOW_Enabled
@@ -91,6 +95,8 @@ ProcBlockManager::ProcBlockManager(ProcBlock *theMainBlock) {
   // Classifiers
   AppendProcessor<ClassifyChargeBalance>();
   // DAQ
+  AppendProcessor<StreamingDAQProc>();
+  AppendProcessor<StreamingFrameProc>();
   AppendProcessor<NoiseProc>();
   AppendProcessor<AfterPulseProc>();
   AppendProcessor<SimpleDAQProc>();
