@@ -82,6 +82,5 @@ void WaveformSampler::AddChannel(int ichannel, PMTWaveform pmtwf) {
     // Step on time
     currenttime += timeres;
   }
-  std::cerr << "\n";
 }
 }  // namespace END

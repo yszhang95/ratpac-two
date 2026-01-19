@@ -5,6 +5,7 @@
 
 #include <RAT/DB.hh>
 #include <RAT/DS/DigitPMT.hh>
+#include <RAT/DS/DiscreteSignal.hh>
 #include <RAT/DS/EV.hh>
 #include <RAT/DS/Frame.hh>
 #include <RAT/DS/FrameLight.hh>
@@ -35,6 +36,7 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
   outputTree = nullptr;
   metaTree = nullptr;
   waveformTree = nullptr;
+  discreteWaveformTree = nullptr;
   frameLightTree = nullptr;
   runBranch = new DS::Run();
   done_writing_calib = false;
@@ -82,6 +84,11 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
     include_frame_ambient = table->GetZ("include_frame_ambient");
   } catch (DBNotFoundError &e) {
     include_frame_ambient = false;
+  }
+  try {
+    options.discretewaveforms = table->GetZ("include_discretewaveforms");
+  } catch (DBNotFoundError &e) {
+    options.discretewaveforms = false;
   }
   if (options.digitizerfits) {
     waveform_fitters = table->GetSArray("waveform_fitters");
@@ -293,6 +300,14 @@ bool OutNtupleProc::OpenFile(std::string filename) {
     waveformTree->Branch("inWindowPulseTimes", &inWindowPulseTimes);
     waveformTree->Branch("inWindowPulseCharges", &inWindowPulseCharges);
     waveformTree->Branch("waveform", &waveform);
+  }
+  if (options.discretewaveforms) {
+    discreteWaveformTree = new TTree("dwf", "Discrete waveform");
+    discreteWaveformTree->Branch("evid", &evid);
+    discreteWaveformTree->Branch("pmtid", &discreteWaveformPMTID);
+    discreteWaveformTree->Branch("inWindowPulseTimes", &discreteInWindowPulseTimes);
+    discreteWaveformTree->Branch("inWindowPulseCharges", &discreteInWindowPulseCharges);
+    discreteWaveformTree->Branch("waveform", &discreteWaveform);
   }
   this->AssignAdditionalAddresses();
 
@@ -746,6 +761,39 @@ Processor::Result OutNtupleProc::DSEvent(DS::Root *ds) {
         waveformTree->Fill();
       }
     }
+    if (options.discretewaveforms && ev->SamplerExists()) {
+      DS::DiscreteSignal sampler = ev->GetWaveformSampler();
+      double readout_window_min = 0.0;
+      double readout_window_max = sampler.GetNSamples() * sampler.GetTimeStepNS();
+      for (auto const &pair : sampler.GetAllWaveforms()) {
+        discreteWaveformPMTID = pair.first;
+        discreteWaveform = pair.second;
+        discreteInWindowPulseTimes.clear();
+        discreteInWindowPulseCharges.clear();
+        if (mc->GetMCPMTCount() == 0) {
+        } else if (discreteWaveformPMTID < 0) {
+        } else {
+          auto it = std::find(mcpmtid.begin(), mcpmtid.end(), discreteWaveformPMTID);
+          if (it == mcpmtid.end())
+            warn << "No MC information found for PMTID = " << discreteWaveformPMTID
+                 << " but waveform exists for some reason..." << newline;
+          else {
+            double time_offset = channel_status->GetCableOffsetByPMTID(discreteWaveformPMTID);
+            DS::MCPMT *mcpmt = mc->GetMCPMT(it - mcpmtid.begin());
+            for (int ipe = 0; ipe < mcpmt->GetMCPhotonCount(); ipe++) {
+              DS::MCPhoton *mcph = mcpmt->GetMCPhoton(ipe);
+              Double_t time = mcph->GetFrontEndTime() - ev->GetCalibratedTriggerTime() + time_offset;
+              Double_t charge = mcph->GetCharge();
+              if (time > readout_window_min && time < readout_window_max) {
+                discreteInWindowPulseTimes.push_back(time);
+                discreteInWindowPulseCharges.push_back(charge);
+              }
+            }
+          }
+        }
+        discreteWaveformTree->Fill();
+      }
+    }
     this->FillEvent(ds, ev);
     outputTree->Fill();
   }
@@ -853,6 +901,7 @@ void OutNtupleProc::EndOfRun(DS::Run *run) {
     }
     outputTree->Write();
     if (options.digitizerwaveforms) waveformTree->Write();
+    if (options.discretewaveforms && discreteWaveformTree) discreteWaveformTree->Write();
     /*
     TMap* dbtrace = Log::GetDBTraceMap();
     dbtrace->Write("db", TObject::kSingleKey);
@@ -890,6 +939,9 @@ void OutNtupleProc::SetI(std::string param, int value) {
   }
   if (param == "include_digitizerwaveforms") {
     options.digitizerwaveforms = value ? true : false;
+  }
+  if (param == "include_discretewaveforms") {
+    options.discretewaveforms = value ? true : false;
   }
   if (param == "include_digitizerhits") {
     options.digitizerhits = value ? true : false;
