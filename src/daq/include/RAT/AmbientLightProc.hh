@@ -2,6 +2,7 @@
 #define __RAT_AmbientLightProc__
 
 #include <RAT/PMTCharge.hh>
+#include <RAT/PMTTime.hh>
 #include <RAT/Processor.hh>
 #include <string>
 #include <vector>
@@ -21,6 +22,7 @@ class AmbientLightProc : public Processor {
 
   double rate;
   int lastFrameIndex;
+  std::vector<RAT::PMTTime *> fPMTTime;
   std::vector<RAT::PMTCharge *> fPMTCharge;
 };
 

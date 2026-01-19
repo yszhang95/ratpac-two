@@ -3,6 +3,7 @@
 #include <Randomize.hh>
 
 #include <cmath>
+#include <string>
 #include <RAT/DB.hh>
 #include <RAT/DS/Frame.hh>
 #include <RAT/DS/FrameLight.hh>
@@ -13,6 +14,7 @@
 #include <RAT/FrameLightProcessCodes.hh>
 #include <RAT/Log.hh>
 #include <RAT/PDFPMTCharge.hh>
+#include <RAT/PDFPMTTime.hh>
 #include <RAT/AmbientLightProc.hh>
 
 namespace RAT {
@@ -20,6 +22,9 @@ namespace RAT {
 AmbientLightProc::AmbientLightProc() : Processor("ambientlight"), rate(0.0), lastFrameIndex(-1) {}
 
 AmbientLightProc::~AmbientLightProc() {
+  for (auto *time : fPMTTime) {
+    delete time;
+  }
   for (auto *charge : fPMTCharge) {
     delete charge;
   }
@@ -37,15 +42,27 @@ void AmbientLightProc::UpdatePMTModels(DS::PMTInfo *pmtinfo) {
     return;
   }
 
+  for (auto *time : fPMTTime) {
+    delete time;
+  }
   for (auto *charge : fPMTCharge) {
     delete charge;
   }
+  fPMTTime.clear();
   fPMTCharge.clear();
 
   const size_t numModels = pmtinfo->GetModelCount();
+  fPMTTime.resize(numModels, nullptr);
   fPMTCharge.resize(numModels, nullptr);
   for (size_t i = 0; i < numModels; i++) {
     const std::string modelName = pmtinfo->GetModelName(i);
+    try {
+      fPMTTime[i] = new RAT::PDFPMTTime(modelName);
+      info << "AmbientLightProc: Loaded PDFPMTTime for " << modelName << newline;
+    } catch (DBNotFoundError &e) {
+      Log::Die("AmbientLightProc: Missing PMTTime model for " + modelName);
+    }
+
     try {
       fPMTCharge[i] = new RAT::PDFPMTCharge(modelName);
       info << "AmbientLightProc: Loaded PDFPMTCharge for " << modelName << newline;
@@ -121,6 +138,13 @@ Processor::Result AmbientLightProc::DSEvent(DS::Root *ds) {
     }
 
     const int modelIndex = pmtinfo->GetModel(pmtid);
+    if (modelIndex < 0 || static_cast<size_t>(modelIndex) >= fPMTTime.size()) {
+      Log::Die("AmbientLightProc: Invalid PMT model index for PMTID " + std::to_string(pmtid));
+    }
+    RAT::PMTTime *timeModel = fPMTTime[modelIndex];
+    if (!timeModel) {
+      Log::Die("AmbientLightProc: Missing PMTTime model for PMTID " + std::to_string(pmtid));
+    }
     RAT::PMTCharge *chargeModel = nullptr;
     if (modelIndex >= 0 && static_cast<size_t>(modelIndex) < fPMTCharge.size()) {
       chargeModel = fPMTCharge[modelIndex];
@@ -133,7 +157,7 @@ Processor::Result AmbientLightProc::DSEvent(DS::Root *ds) {
       mcpepmtid.push_back(pmtid);
       mcpehittime.push_back(hitTime);
       mcpehittimeRel.push_back(hitTimeRel);
-      mcpefrontendtime.push_back(hitTime);
+      mcpefrontendtime.push_back(timeModel->PickTime(hitTime));
       mcpeprocess.push_back(FrameLightProcess::kFrameAmbientLight);
       mcpewavelength.push_back(0.0);
       mcpex.push_back(0.0);
