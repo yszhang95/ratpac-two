@@ -23,4 +23,4 @@
 /rat/procset file "frame_meta.root"
 
 /run/initialize
-/run/beamOn 1000
+/run/beamOn 1
