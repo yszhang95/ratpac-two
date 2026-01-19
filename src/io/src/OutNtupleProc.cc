@@ -73,6 +73,16 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
     options.calib = true;
     options.nthits = false;
   }
+  try {
+    include_frame_info = table->GetZ("include_frame_info");
+  } catch (DBNotFoundError &e) {
+    include_frame_info = false;
+  }
+  try {
+    include_frame_ambient = table->GetZ("include_frame_ambient");
+  } catch (DBNotFoundError &e) {
+    include_frame_ambient = false;
+  }
   if (options.digitizerfits) {
     waveform_fitters = table->GetSArray("waveform_fitters");
     for (const std::string &fitter_name : waveform_fitters) {
