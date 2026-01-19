@@ -14,13 +14,12 @@
 /rat/procset frame_window_length_ms 100.0
 
 /rat/proc ambientlight
-/rat/procset rate 7000.0
+/rat/procset rate 70.0
 
-/rat/proc outframeambientlight
-/rat/procset file "frame_ambientlight.root"
-
-/rat/proc outframemeta
-/rat/procset file "frame_meta.root"
+/rat/proc outntuple
+/rat/procset file "output_ambient_light.root"
+/rat/procset include_frame_info 1
+/rat/procset include_frame_ambient 1
 
 /run/initialize
-/run/beamOn 1
+/run/beamOn 1000

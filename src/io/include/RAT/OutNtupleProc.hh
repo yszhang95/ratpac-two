@@ -8,6 +8,7 @@
 #include <RAT/DS/Run.hh>
 #include <RAT/Processor.hh>
 #include <functional>
+#include <vector>
 
 #include "Math/Types.h"
 
@@ -79,6 +80,10 @@ class OutNtupleProc : public Processor {
   TTree *outputTree;
   TTree *metaTree;
   TTree *waveformTree;
+  TTree *frameLightTree;
+  bool include_frame_info;
+  bool include_frame_ambient;
+  int lastFrameLightIndex;
   // Meta Branches
   Int_t runId;
   ULong64_t runType;
@@ -168,6 +173,22 @@ class OutNtupleProc : public Processor {
   std::vector<double> mcpey;
   std::vector<double> mcpez;
   std::vector<double> mcpecharge;
+  // Frame-level output
+  int frameLightIndex;
+  ULong64_t frameLightUtcSeconds;
+  ULong64_t frameLightUtc16NanosecondCycles;
+  double frameLightStartTimeNs;
+  double frameLightWindowLengthNs;
+  std::vector<int> frameLightMCPMTID;
+  std::vector<double> frameLightMCPEHitTime;
+  std::vector<double> frameLightMCPEHitTimeRel;
+  std::vector<double> frameLightMCPEFrontEndTime;
+  std::vector<int> frameLightMCPEProcess;
+  std::vector<double> frameLightMCPEWavelength;
+  std::vector<double> frameLightMCPEX;
+  std::vector<double> frameLightMCPEY;
+  std::vector<double> frameLightMCPEZ;
+  std::vector<double> frameLightMCPECharge;
   // MCParticles
   int mcpcount;
   int mcid;

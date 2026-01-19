@@ -10,9 +10,10 @@
 /rat/proc streamingframe
 /rat/procset frame_window_length_ms 100.0
 
-/rat/proc outframemeta
-/rat/procset file "frame_meta.root"
+/rat/proc outntuple
+/rat/procset file "output_frame_meta.root"
+/rat/procset include_frame_info 1
+/rat/procset include_frame_ambient 0
 
-# One event per frame
 /run/initialize
-/run/beamOn 10
+/run/beamOn 1000
