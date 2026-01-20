@@ -14,6 +14,8 @@ class StreamingFrameProc : public Processor {
 
  private:
   double frameWindowLengthMs;
+  long fOffsetSec;  // seconds part of the offset
+  bool fInitialized;
 };
 
 }  // namespace RAT

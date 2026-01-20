@@ -13,7 +13,9 @@
 
 namespace RAT {
 
-StreamingFrameProc::StreamingFrameProc() : Processor("streamingframe"), frameWindowLengthMs(100.0) {}
+StreamingFrameProc::StreamingFrameProc()
+    : Processor("streamingframe"),
+      frameWindowLengthMs(100.0), fOffsetSec(0), fInitialized(false) {}
 
 void StreamingFrameProc::SetD(std::string param, double value) {
   if (param == "frame_window_length_ms") {
@@ -37,12 +39,21 @@ Processor::Result StreamingFrameProc::DSEvent(DS::Root *ds) {
   double frameStartTimeNs = 0.0;
 
   if (hasPrimaries) {
+    // offset by second;
     const TTimeStamp utc = mc->GetUTC();
-    const double eventTimeNs = static_cast<double>(utc.GetSec()) * CLHEP::s +
-                               static_cast<double>(utc.GetNanoSec()) * CLHEP::ns;
+    if (fInitialized == false) {
+      fInitialized = true;
+      fOffsetSec = static_cast<int32_t>(utc.GetSec());
+      if (fOffsetSec < 0) {
+        G4Exception(__FILE__, "Invalid Parameter", FatalException,
+            "StreamingFrameProc: Event UTC seconds is negative or overflow");
+      }
+    }
+    const double deltaTimeS = static_cast<double>(utc.GetSec() - fOffsetSec) * CLHEP::s;
+    const double eventTimeNs = static_cast<double>(utc.GetNanoSec()) * CLHEP::ns;
     const double eventTimeMs = eventTimeNs / CLHEP::ms;
 
-    frameIndex = static_cast<int>(std::floor(eventTimeMs / frameWindowLengthMs));
+    frameIndex = static_cast<int>(std::floor((deltaTimeS / CLHEP::ms + eventTimeMs) / frameWindowLengthMs));
     frameStartTimeNs = static_cast<double>(frameIndex) * frameWindowLengthNs;
   } else {
     if (!ds->ExistEV()) {
@@ -53,7 +64,8 @@ Processor::Result StreamingFrameProc::DSEvent(DS::Root *ds) {
     frameStartTimeNs = static_cast<double>(frameIndex) * frameWindowLengthNs;
   }
 
-  utcSeconds = static_cast<uint64_t>(std::floor(frameStartTimeNs / CLHEP::s));
+  utcSeconds = static_cast<uint64_t>(std::floor(frameStartTimeNs / CLHEP::s))
+    + static_cast<uint64_t>(fOffsetSec);
   utc16NanosecondCycles = static_cast<uint64_t>(
       std::floor(std::fmod(frameStartTimeNs, CLHEP::s) / (16.0 * CLHEP::ns)));
 
