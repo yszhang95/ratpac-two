@@ -6,6 +6,8 @@
 #include <RAT/DB.hh>
 #include <RAT/DS/DigitPMT.hh>
 #include <RAT/DS/EV.hh>
+#include <RAT/DS/Frame.hh>
+#include <RAT/DS/FrameLight.hh>
 #include <RAT/DS/MC.hh>
 #include <RAT/DS/MCPMT.hh>
 #include <RAT/DS/MCParticle.hh>
@@ -32,8 +34,12 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
   outputFile = nullptr;
   outputTree = nullptr;
   metaTree = nullptr;
+  waveformTree = nullptr;
+  frameLightTree = nullptr;
   runBranch = new DS::Run();
   done_writing_calib = false;
+  include_frame_info = false;
+  lastFrameLightIndex = -1;
 
   // Load options from the database
   DB *db = DB::Get();
@@ -65,6 +71,11 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
     options.mchits = true;
     options.calib = true;
     options.nthits = false;
+  }
+  try {
+    include_frame_info = table->GetZ("include_frame_info");
+  } catch (DBNotFoundError &e) {
+    include_frame_info = false;
   }
   if (options.digitizerfits) {
     waveform_fitters = table->GetSArray("waveform_fitters");
@@ -120,6 +131,16 @@ bool OutNtupleProc::OpenFile(std::string filename) {
   }
   this->AssignAdditionalMetaAddresses();
   dsentries = 0;
+
+  if (include_frame_info) {
+    frameLightTree = new TTree("frame_light", "frame_light");
+    frameLightTree->Branch("frame_index", &frameLightIndex);
+    frameLightTree->Branch("utc_seconds", &frameLightUtcSeconds);
+    frameLightTree->Branch("utc_16nanosecondcycles", &frameLightUtc16NanosecondCycles);
+    frameLightTree->Branch("frame_start_time_ns", &frameLightStartTimeNs);
+    frameLightTree->Branch("frame_window_length_ns", &frameLightWindowLengthNs);
+  }
+
   // Data Tree
   outputTree = new TTree("output", "output");
   // These are the *first* particles MC positions, directions, and time
@@ -289,6 +310,22 @@ Processor::Result OutNtupleProc::DSEvent(DS::Root *ds) {
   DS::PMTInfo *pmtinfo = runBranch->GetPMTInfo();
   DS::NestedTubeInfo *ntinfo = runBranch->GetNestedTubeInfo();
   const DS::ChannelStatus *channel_status = runBranch->GetChannelStatus();
+
+  if (include_frame_info && frameLightTree && ds->ExistFrame()) {
+    DS::Frame *frame = ds->GetFrame();
+    const int currentFrameIndex = frame->GetFrameIndex();
+    if (currentFrameIndex != lastFrameLightIndex) {
+      frameLightIndex = currentFrameIndex;
+      frameLightUtcSeconds = frame->GetUtcSeconds();
+      frameLightUtc16NanosecondCycles = frame->GetUtc16NanosecondCycles();
+      frameLightStartTimeNs = frame->GetFrameStartTimeNs();
+      frameLightWindowLengthNs = frame->GetFrameWindowLengthNs();
+
+      frameLightTree->Fill();
+      lastFrameLightIndex = currentFrameIndex;
+    }
+  }
+
   dsentries++;
   // Clear the previous vectors
   pdgcodes.clear();
@@ -766,6 +803,9 @@ void OutNtupleProc::EndOfRun(DS::Run *run) {
     FillMeta();
     metaTree->Fill();
     metaTree->Write();
+    if (frameLightTree) {
+      frameLightTree->Write();
+    }
     outputTree->Write();
     if (options.digitizerwaveforms) waveformTree->Write();
     /*
@@ -811,6 +851,9 @@ void OutNtupleProc::SetI(std::string param, int value) {
   }
   if (param == "include_digitizerfits") {
     options.digitizerfits = value ? true : false;
+  }
+  if (param == "include_frame_info") {
+    include_frame_info = value ? true : false;
   }
 }
 
