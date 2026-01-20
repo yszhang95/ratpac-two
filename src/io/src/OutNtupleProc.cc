@@ -39,6 +39,7 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
   runBranch = new DS::Run();
   done_writing_calib = false;
   include_frame_info = false;
+  include_frame_ambient = false;
   lastFrameLightIndex = -1;
 
   // Load options from the database
@@ -76,6 +77,11 @@ OutNtupleProc::OutNtupleProc() : Processor("outntuple") {
     include_frame_info = table->GetZ("include_frame_info");
   } catch (DBNotFoundError &e) {
     include_frame_info = false;
+  }
+  try {
+    include_frame_ambient = table->GetZ("include_frame_ambient");
+  } catch (DBNotFoundError &e) {
+    include_frame_ambient = false;
   }
   if (options.digitizerfits) {
     waveform_fitters = table->GetSArray("waveform_fitters");
@@ -139,6 +145,18 @@ bool OutNtupleProc::OpenFile(std::string filename) {
     frameLightTree->Branch("utc_16nanosecondcycles", &frameLightUtc16NanosecondCycles);
     frameLightTree->Branch("frame_start_time_ns", &frameLightStartTimeNs);
     frameLightTree->Branch("frame_window_length_ns", &frameLightWindowLengthNs);
+    if (include_frame_ambient) {
+      frameLightTree->Branch("mcpepmtid", &frameLightMCPMTID);
+      frameLightTree->Branch("mcpehittime", &frameLightMCPEHitTime);
+      frameLightTree->Branch("mcpehittime_rel", &frameLightMCPEHitTimeRel);
+      frameLightTree->Branch("mcpefrontendtime", &frameLightMCPEFrontEndTime);
+      frameLightTree->Branch("mcpeprocess", &frameLightMCPEProcess);
+      frameLightTree->Branch("mcpewavelength", &frameLightMCPEWavelength);
+      frameLightTree->Branch("mcpex", &frameLightMCPEX);
+      frameLightTree->Branch("mcpey", &frameLightMCPEY);
+      frameLightTree->Branch("mcpez", &frameLightMCPEZ);
+      frameLightTree->Branch("mcpecharge", &frameLightMCPECharge);
+    }
   }
 
   // Data Tree
@@ -320,6 +338,33 @@ Processor::Result OutNtupleProc::DSEvent(DS::Root *ds) {
       frameLightUtc16NanosecondCycles = frame->GetUtc16NanosecondCycles();
       frameLightStartTimeNs = frame->GetFrameStartTimeNs();
       frameLightWindowLengthNs = frame->GetFrameWindowLengthNs();
+
+      if (include_frame_ambient) {
+        frameLightMCPMTID.clear();
+        frameLightMCPEHitTime.clear();
+        frameLightMCPEHitTimeRel.clear();
+        frameLightMCPEFrontEndTime.clear();
+        frameLightMCPEProcess.clear();
+        frameLightMCPEWavelength.clear();
+        frameLightMCPEX.clear();
+        frameLightMCPEY.clear();
+        frameLightMCPEZ.clear();
+        frameLightMCPECharge.clear();
+
+        if (ds->ExistFrameLight()) {
+          DS::FrameLight *frameLight = ds->GetFrameLight();
+          frameLightMCPMTID = frameLight->GetMCPMTID();
+          frameLightMCPEHitTime = frameLight->GetMCPEHitTime();
+          frameLightMCPEHitTimeRel = frameLight->GetMCPEHitTimeRel();
+          frameLightMCPEFrontEndTime = frameLight->GetMCPEFrontEndTime();
+          frameLightMCPEProcess = frameLight->GetMCPEProcess();
+          frameLightMCPEWavelength = frameLight->GetMCPEWavelength();
+          frameLightMCPEX = frameLight->GetMCPEX();
+          frameLightMCPEY = frameLight->GetMCPEY();
+          frameLightMCPEZ = frameLight->GetMCPEZ();
+          frameLightMCPECharge = frameLight->GetMCPECharge();
+        }
+      }
 
       frameLightTree->Fill();
       lastFrameLightIndex = currentFrameIndex;
@@ -854,6 +899,9 @@ void OutNtupleProc::SetI(std::string param, int value) {
   }
   if (param == "include_frame_info") {
     include_frame_info = value ? true : false;
+  }
+  if (param == "include_frame_ambient") {
+    include_frame_ambient = value ? true : false;
   }
 }
 

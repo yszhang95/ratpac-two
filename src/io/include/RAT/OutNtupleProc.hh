@@ -82,6 +82,7 @@ class OutNtupleProc : public Processor {
   TTree *waveformTree;
   TTree *frameLightTree;
   bool include_frame_info;
+  bool include_frame_ambient;
   int lastFrameLightIndex;
   // Meta Branches
   Int_t runId;

@@ -15,6 +15,7 @@ add_library(daq OBJECT
   src/ForcedTriggerProc.cc
   src/StreamingDAQProc.cc
   src/StreamingFrameProc.cc
+  src/AmbientLightProc.cc
   src/WaveformPrep.cc
   src/WaveformAnalyzerBase.cc
   src/WaveformAnalysisLognormal.cc

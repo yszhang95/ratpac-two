@@ -1,0 +1,27 @@
+# Streaming frame ambient light test
+/rat/db/set DETECTOR experiment "Validation"
+/rat/db/set DETECTOR geo_file "Validation/Valid.geo"
+/rat/db/set GEO[pmts] pmt_model "r11780_hqe"
+/rat/db/set IO[NtupleProc] include_frame_info true
+/rat/db/set IO[NtupleProc] include_frame_ambient true
+
+
+/rat/proc streamingdaq
+/rat/proc streamingframe
+/rat/procset frame_window_length_ms 100.0
+
+/rat/proc ambientlight
+/rat/procset rate 70.0
+
+/rat/proclast outntuple
+/rat/procset file "output_ambient_light.root"
+
+# Dummy generator (0 photons) to satisfy Geant4
+/generator/add combo pbomb:point:poisson
+/generator/pos/set 0.0 0.0 0.0
+/generator/vtx/set 0 400
+/generator/rate/set 1.0
+
+
+/run/initialize
+/run/beamOn 1000

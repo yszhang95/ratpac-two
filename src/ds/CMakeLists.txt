@@ -3,6 +3,7 @@
 
 add_library(ds OBJECT
         src/Frame.cc
+        src/FrameLight.cc
         src/Root.cc
         src/MCPMT.cc
         src/RunStore.cc)
@@ -26,6 +27,7 @@ root_generate_dictionary(G__RATDict
         RAT/DS/Digit.hh
         RAT/DS/EV.hh
         RAT/DS/Frame.hh
+        RAT/DS/FrameLight.hh
         RAT/DS/FitResult.hh
         RAT/DS/LAPPD.hh
         RAT/DS/LAPPDHit.hh

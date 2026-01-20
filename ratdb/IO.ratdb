@@ -21,6 +21,7 @@
 "include_digitizerfits": true,
 "include_digitizerwaveforms": false,
 "include_frame_info": false,
+"include_frame_ambient": false,
 "include_untriggered_events": true,
 "include_mchits": true,
 "include_calib": true,
