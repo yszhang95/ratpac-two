@@ -15,6 +15,5 @@
 /generator/vtx/set 0 400      # 0 photons, 400nm wavelength
 /generator/rate/set 1.0       # Poisson rate to keep time generator valid
 
-# One event per frame
 /run/initialize
-/run/beamOn 10
+/run/beamOn 1000

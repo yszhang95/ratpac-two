@@ -20,7 +20,6 @@
 #include <RAT/FitTensorProc.hh>
 #include <RAT/ForcedTriggerProc.hh>
 #include <RAT/NoiseProc.hh>
-#include <RAT/OutFrameMetaProc.hh>
 #include <RAT/OutNetProc.hh>
 #include <RAT/OutNtupleProc.hh>
 #include <RAT/OutROOTProc.hh>
@@ -82,7 +81,6 @@ ProcBlockManager::ProcBlockManager(ProcBlock *theMainBlock) {
 
   AppendProcessor<OutNtupleProc>();
   AppendProcessor<OutNetProc>();
-  AppendProcessor<OutFrameMetaProc>();
   // Fitters
   AppendProcessor<FitCentroidProc>();
 #if TENSORFLOW_Enabled
