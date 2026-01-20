@@ -27,6 +27,7 @@
 #pragma link C++ class RAT::DS::LAPPD + ;
 #pragma link C++ class RAT::DS::LAPPDHit + ;
 #pragma link C++ class RAT::DS::Digit + ;
+#pragma link C++ class RAT::DS::DiscreteSignal + ;
 
 #pragma link C++ class RAT::DS::RunStore + ;
 #pragma link C++ class RAT::DS::Run + ;

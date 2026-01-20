@@ -104,13 +104,32 @@ void WaveformPrep::RunAnalysis(DS::DigitPMT* digitpmt, int pmtID, DS::Digit* dsd
   DoAnalysis(digitpmt, digitWfm, timeOffset);
 }
 
+void WaveformPrep::RunAnalysis(DS::DigitPMT* digitpmt, int pmtID,
+                               DS::DiscreteSignal* signal,
+                               double timeOffset) {
+  fTimeStep = signal->GetTimeStepNS();        // ns
+  fTermOhms = signal->GetTerminationOhms();   // ohm
+
+  std::vector<Float_t> analog = signal->GetWaveform(pmtID);
+  std::vector<double> voltWfm;
+  voltWfm.reserve(analog.size());
+  for (Float_t v : analog) {
+    voltWfm.push_back(static_cast<double>(v));
+  }
+  DoAnalysisAnalog(digitpmt, voltWfm, timeOffset, 0.);
+}
+
 void WaveformPrep::DoAnalysis(DS::DigitPMT* digitpmt, const std::vector<UShort_t>& digitWfm, double timeOffset) {
-  // Calculate baseline in ADC units
+    // Calculate baseline in ADC units
   double pedestal = WaveformUtil::CalculatePedestalADC(digitWfm, fPedWindowLow, fPedWindowHigh);
 
   // Convert from ADC to mV
-  std::vector<double> voltWfm = WaveformUtil::ADCtoVoltage(digitWfm, fVoltageRes, pedestal = pedestal);
+  std::vector<double> voltWfm = WaveformUtil::ADCtoVoltage(digitWfm, fVoltageRes, pedestal);
 
+  DoAnalysisAnalog(digitpmt, voltWfm, timeOffset, pedestal);
+}
+
+void WaveformPrep::DoAnalysisAnalog(DS::DigitPMT* digitpmt, const std::vector<double>& voltWfm, double timeOffset, double pedestal) {
   // Calculate highest peak in mV
   std::pair<int, double> peak = WaveformUtil::FindHighestPeak(voltWfm);
   int samplePeak = peak.first;
@@ -174,28 +193,49 @@ double WaveformPrep::RunAnalysisOnTrigger(int pmtID, Digitizer* fDigitizer) {
 }
 
 Processor::Result WaveformPrep::Event(DS::Root* ds, DS::EV* ev) {
-  if (!ev->DigitizerExists()) {
+  if (!ev->DigitizerExists() && !ev->SamplerExists()) {
     warn << "Running waveform analysis, but no digitzer information." << newline;
     return Processor::Result::OK;
   }
-  DS::Digit* dsdigit = &ev->GetDigitizer();
   DS::Run* run = DS::RunStore::GetRun(ds->GetRunID());
-  const DS::ChannelStatus* ch_status = run->GetChannelStatus();
-  std::vector<int> pmt_ids = dsdigit->GetIDs();
   double total_charge = 0;
   double time_offset = 0;
-  for (int pmt_id : pmt_ids) {
-    // Do not analyze negative pmtid channels, since they do not correspond to real PMTs.
-    if (pmt_id < 0) continue;
-    if (!ch_status->GetOnlineByPMTID(pmt_id)) continue;
-    DS::DigitPMT* digitpmt = ev->GetOrCreateDigitPMT(pmt_id);
-    time_offset = fApplyCableOffset ? ch_status->GetCableOffsetByPMTID(pmt_id) : 0.0;
-    RunAnalysis(digitpmt, pmt_id, dsdigit, time_offset);
-    if (digitpmt->GetNCrossings() > 0) {
-      total_charge += digitpmt->GetDigitizedCharge();
-    }
-    ZeroSuppress(ev, digitpmt, pmt_id);
-    ev->SetTotalCharge(total_charge);
+
+  if (ev->DigitizerExists()) {
+      DS::Digit* dsdigit = &ev->GetDigitizer();
+      const DS::ChannelStatus* ch_status = run->GetChannelStatus();
+      std::vector<int> pmt_ids = dsdigit->GetIDs();
+      for (int pmt_id : pmt_ids) {
+        // Do not analyze negative pmtid channels, since they do not correspond to real PMTs.
+        if (pmt_id < 0) continue;
+        if (!ch_status->GetOnlineByPMTID(pmt_id)) continue;
+        DS::DigitPMT* digitpmt = ev->GetOrCreateDigitPMT(pmt_id);
+        time_offset = fApplyCableOffset ? ch_status->GetCableOffsetByPMTID(pmt_id) : 0.0;
+        RunAnalysis(digitpmt, pmt_id, dsdigit, time_offset);
+        if (digitpmt->GetNCrossings() > 0) {
+          total_charge += digitpmt->GetDigitizedCharge();
+        }
+        ZeroSuppress(ev, digitpmt, pmt_id);
+        ev->SetTotalCharge(total_charge);
+      }
+  } else if (ev->SamplerExists()) {
+    DS::DiscreteSignal* dsdigit = &ev->GetWaveformSampler();
+    const DS::ChannelStatus* ch_status = run->GetChannelStatus();
+    std::vector<int> pmt_ids = dsdigit->GetIDs();
+    for (int pmt_id : pmt_ids) {
+      // Do not analyze negative pmtid channels, since they do not correspond to real PMTs.
+        if (pmt_id < 0) continue;
+        if (!ch_status->GetOnlineByPMTID(pmt_id)) continue;
+        DS::DigitPMT* digitpmt = ev->GetOrCreateDigitPMT(pmt_id);
+        time_offset = fApplyCableOffset ? ch_status->GetCableOffsetByPMTID(pmt_id) : 0.0;
+        RunAnalysis(digitpmt, pmt_id, dsdigit, time_offset);
+        if (digitpmt->GetNCrossings() > 0) {
+          total_charge += digitpmt->GetDigitizedCharge();
+        }
+        ZeroSuppress(ev, digitpmt, pmt_id);
+        ev->SetTotalCharge(total_charge);
+      }
+
   }
   return Processor::Result::OK;
 }

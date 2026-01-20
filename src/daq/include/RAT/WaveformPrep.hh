@@ -23,6 +23,7 @@
 
 #include <RAT/DB.hh>
 #include <RAT/DS/DigitPMT.hh>
+#include <RAT/DS/DiscreteSignal.hh>
 #include <RAT/Digitizer.hh>
 #include <RAT/Processor.hh>
 #include <vector>
@@ -38,6 +39,7 @@ class WaveformPrep : public Processor {
   void Configure(const std::string &analyzer_name);
   void RunAnalysis(DS::DigitPMT *digitpmt, int pmtID, Digitizer *fDigitizer, double timeOffset = 0.0);
   void RunAnalysis(DS::DigitPMT *digitpmt, int pmtID, DS::Digit *dsdigit, double timeOffset = 0.0);
+  void RunAnalysis(DS::DigitPMT *digitpmt, int pmtID, DS::DiscreteSignal *signal, double timeOffset);
 
   double RunAnalysisOnTrigger(int pmtID, Digitizer *fDigitizer);
 
@@ -74,6 +76,7 @@ class WaveformPrep : public Processor {
   int fZeroSuppress;
 
   void DoAnalysis(DS::DigitPMT *pmt, const std::vector<UShort_t> &DigitWfm, double timeOffset);
+  void DoAnalysisAnalog(DS::DigitPMT* digitpmt, const std::vector<double>& voltWfm, double timeOffset, double pedestal);
 };
 
 }  // namespace RAT

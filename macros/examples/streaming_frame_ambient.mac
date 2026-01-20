@@ -22,6 +22,5 @@
 /generator/vtx/set 0 400
 /generator/rate/set 1.0
 
-
 /run/initialize
 /run/beamOn 1000

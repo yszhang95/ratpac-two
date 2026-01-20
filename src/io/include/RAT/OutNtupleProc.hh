@@ -62,6 +62,7 @@ class OutNtupleProc : public Processor {
     bool mcparticles;
     bool pmthits;
     bool digitizerwaveforms;
+    bool discretewaveforms;
     bool digitizerhits;
     bool digitizerfits;
     bool untriggered;
@@ -80,6 +81,7 @@ class OutNtupleProc : public Processor {
   TTree *outputTree;
   TTree *metaTree;
   TTree *waveformTree;
+  TTree *discreteWaveformTree;
   TTree *frameLightTree;
   bool include_frame_info;
   bool include_frame_ambient;
@@ -129,6 +131,10 @@ class OutNtupleProc : public Processor {
   std::vector<Double_t> inWindowPulseTimes;
   std::vector<Double_t> inWindowPulseCharges;
   std::vector<UShort_t> waveform;
+  int discreteWaveformPMTID;
+  std::vector<Double_t> discreteInWindowPulseTimes;
+  std::vector<Double_t> discreteInWindowPulseCharges;
+  std::vector<Float_t> discreteWaveform;
   // Data Branches
   Int_t mcpdg;
   double mcx, mcy, mcz;
